@@ -2,29 +2,20 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { ConfigService } from '@nestjs/config';
 import { User } from '../../entities/user.entity';
-import { UserRefreshToken } from '../../entities/user-refresh-token.entity';
 import { CreateUserDto } from './dto/create-user.dto';
-import { LoginUserDto } from './dto/login-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UserJwtPayload } from '../../common/interfaces/jwt-payload.interface';
-import { RefreshTokenDto } from '../owners/dto/refresh-token.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
-    @InjectRepository(UserRefreshToken)
-    private readonly refreshTokenRepo: Repository<UserRefreshToken>,
-    private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -80,123 +71,5 @@ export class UsersService {
     const user = await this.findOne(storeId, userId);
     await this.userRepo.softRemove(user);
   }
-
-  async login(
-    dto: LoginUserDto,
-    ip?: string,
-    deviceInfo?: string,
-  ): Promise<{ accessToken: string; refreshToken: string; user: Partial<User> }> {
-    const user = await this.userRepo.findOne({
-      where: { storeId: dto.storeId, phone: dto.phone },
-      select: { id: true, uuid: true, storeId: true, name: true, phone: true, role: true, passwordHash: true, isActive: true },
-    });
-
-    if (!user || !user.isActive) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    user.lastLoginAt = new Date();
-    await this.userRepo.save(user);
-
-    const tokens = await this.generateTokens(user, ip, deviceInfo);
-    const { passwordHash: _pw, ...safeUser } = user;
-    return { ...tokens, user: safeUser };
-  }
-
-  async refresh(
-    dto: RefreshTokenDto,
-    ip?: string,
-    deviceInfo?: string,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    const stored = await this.refreshTokenRepo
-      .createQueryBuilder('t')
-      .where('t.revoked_at IS NULL')
-      .andWhere('t.expires_at > NOW()')
-      .getMany();
-
-    let validToken: UserRefreshToken | undefined;
-    for (const t of stored) {
-      const match = await bcrypt.compare(dto.refreshToken, t.tokenHash);
-      if (match) {
-        validToken = t;
-        break;
-      }
-    }
-
-    if (!validToken) {
-      throw new UnauthorizedException('Invalid or expired refresh token');
-    }
-
-    validToken.revokedAt = new Date();
-    await this.refreshTokenRepo.save(validToken);
-
-    const user = await this.userRepo.findOne({
-      where: { id: validToken.userId, isActive: true },
-    });
-    if (!user) throw new UnauthorizedException('User not found');
-
-    return this.generateTokens(user, ip, deviceInfo);
-  }
-
-  async logout(dto: RefreshTokenDto): Promise<void> {
-    const stored = await this.refreshTokenRepo
-      .createQueryBuilder('t')
-      .where('t.revoked_at IS NULL')
-      .getMany();
-
-    for (const t of stored) {
-      const match = await bcrypt.compare(dto.refreshToken, t.tokenHash);
-      if (match) {
-        t.revokedAt = new Date();
-        await this.refreshTokenRepo.save(t);
-        return;
-      }
-    }
-  }
-
-  private async generateTokens(
-    user: User,
-    ip?: string,
-    deviceInfo?: string,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    const payload: UserJwtPayload = {
-      sub: user.id,
-      uuid: user.uuid,
-      storeId: user.storeId,
-      role: user.role,
-      type: 'user',
-    };
-
-    const accessToken = this.jwtService.sign(payload as unknown as Record<string, unknown>, {
-      secret: this.configService.get<string>('jwt.user.secret'),
-      expiresIn: (this.configService.get<string>('jwt.user.expiresIn') ?? '15m') as never,
-    });
-
-    const rawRefreshToken = this.jwtService.sign(payload as unknown as Record<string, unknown>, {
-      secret: this.configService.get<string>('jwt.user.refreshSecret'),
-      expiresIn: (this.configService.get<string>('jwt.user.refreshExpiresIn') ?? '7d') as never,
-    });
-
-    const saltRounds = this.configService.get<number>('bcryptSaltRounds') ?? 12;
-    const tokenHash = await bcrypt.hash(rawRefreshToken, saltRounds);
-
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
-
-    const storedToken = this.refreshTokenRepo.create({
-      userId: user.id,
-      tokenHash,
-      ipAddress: ip ?? null,
-      deviceInfo: deviceInfo ?? null,
-      expiresAt,
-    });
-    await this.refreshTokenRepo.save(storedToken);
-
-    return { accessToken, refreshToken: rawRefreshToken };
-  }
 }
+

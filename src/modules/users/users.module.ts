@@ -17,6 +17,7 @@ import { SubscriptionLimitsGuard } from '../../common/guards/subscription-limits
   ],
   controllers: [UsersController],
   providers: [UsersService, UserJwtStrategy, SubscriptionLimitsGuard],
-  exports: [UsersService, TypeOrmModule],
+  exports: [UsersService, TypeOrmModule, UserJwtStrategy],
 })
 export class UsersModule {}
+

@@ -9,8 +9,6 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 
 // ── Entities ──────────────────────────────────────────────────────────────────
 import { SubscriptionPlan } from './entities/subscription-plan.entity';
-import { Owner } from './entities/owner.entity';
-import { OwnerRefreshToken } from './entities/owner-refresh-token.entity';
 import { Subscription } from './entities/subscription.entity';
 import { SubscriptionInvoice } from './entities/subscription-invoice.entity';
 import { Store } from './entities/store.entity';
@@ -33,7 +31,7 @@ import { StoreSetting } from './entities/store-setting.entity';
 import { Notification } from './entities/notification.entity';
 
 // ── Feature Modules ───────────────────────────────────────────────────────────
-import { OwnersModule } from './modules/owners/owners.module';
+import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { SubscriptionPlansModule } from './modules/subscription-plans/subscription-plans.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
@@ -50,7 +48,7 @@ import { StoreSettingsModule } from './modules/store-settings/store-settings.mod
 import { NotificationsModule } from './modules/notifications/notifications.module';
 
 const ALL_ENTITIES = [
-  SubscriptionPlan, Owner, OwnerRefreshToken, Subscription, SubscriptionInvoice,
+  SubscriptionPlan, Subscription, SubscriptionInvoice,
   Store, User, UserRefreshToken, ProductCategory, Product, StockLedger,
   Customer, Dealer, Order, OrderItem, OrderStatusHistory,
   Purchase, PurchaseItem, Payment, ExpenseCategory, Expense,
@@ -81,7 +79,7 @@ const ALL_ENTITIES = [
       }),
     }),
     // ── Feature modules ────────────────────────────────────────────────────────
-    OwnersModule,
+    AuthModule,
     UsersModule,
     SubscriptionPlansModule,
     SubscriptionsModule,

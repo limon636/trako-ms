@@ -13,7 +13,7 @@ import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
-import { UserJwtGuard } from '../../common/guards/user-jwt.guard';
+import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { SubscriptionLimitsGuard } from '../../common/guards/subscription-limits.guard';
 import { SubscriptionLimit, LimitType } from '../../common/decorators/subscription-limit.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -21,7 +21,7 @@ import { User } from '../../entities/user.entity';
 
 @ApiBearerAuth()
 @ApiTags('Orders')
-@UseGuards(UserJwtGuard)
+@UseGuards(StoreAccessGuard)
 @Controller('stores/:storeId/orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}

@@ -10,13 +10,13 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
-import { UserJwtGuard } from '../../common/guards/user-jwt.guard';
+import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '../../entities/user.entity';
 
 @ApiBearerAuth()
 @ApiTags('Notifications')
-@UseGuards(UserJwtGuard)
+@UseGuards(StoreAccessGuard)
 @Controller('stores/:storeId/notifications')
 export class NotificationsController {
   constructor(private readonly service: NotificationsService) {}

@@ -1,0 +1,653 @@
+@baseUrl = http://localhost:3000/api/v1
+# limon.steadfast
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXVpZCI6ImM0MjM1YzJkLTk3YTgtNGY2Zi1hOTY2LTgxNzMyOThhOWU0OCIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc3OTY0NzQ4OCwiZXhwIjoxNzgwMjUyMjg4fQ.koKOQvI8zBUOfWqjrSzPQJfR0VygK0TIgRDsBnYv9S4
+@storeId = 1
+
+
+### ─────────────────────────────────────────────
+### AUTH
+### ─────────────────────────────────────────────
+
+### Refresh access token
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXVpZCI6ImM0MjM1YzJkLTk3YTgtNGY2Zi1hOTY2LTgxNzMyOThhOWU0OCIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc3OTY0NzQ4OCwiZXhwIjoxNzgyMjM5NDg4fQ.TFZYN2Ka2sbFk09tKoMX7FWCtW7T-b-zaHwakEShbFQ"
+}
+
+###
+
+### Logout (revoke refresh token)
+POST {{baseUrl}}/auth/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXVpZCI6ImM0MjM1YzJkLTk3YTgtNGY2Zi1hOTY2LTgxNzMyOThhOWU0OCIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTc3OTY0NzQ4OCwiZXhwIjoxNzgyMjM5NDg4fQ.TFZYN2Ka2sbFk09tKoMX7FWCtW7T-b-zaHwakEShbFQ"
+}
+
+###
+
+### Get current user profile
+GET {{baseUrl}}/auth/profile
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────
+### SUBSCRIPTION PLANS (public)
+### ─────────────────────────────────────────────
+
+### List all active plans
+GET {{baseUrl}}/subscription-plans
+
+###
+
+### ─────────────────────────────────────────────
+### SUBSCRIPTIONS
+### ─────────────────────────────────────────────
+
+### Get current active subscription
+GET {{baseUrl}}/subscriptions/current
+Authorization: Bearer {{token}}
+
+###
+
+### Get subscription history
+GET {{baseUrl}}/subscriptions/history
+Authorization: Bearer {{token}}
+
+###
+
+### Subscribe / upgrade to a plan
+# billingCycle: monthly | yearly | trial
+POST {{baseUrl}}/subscriptions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "planId": 1,
+  "billingCycle": "monthly"
+}
+
+###
+
+### Cancel current subscription
+POST {{baseUrl}}/subscriptions/cancel
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────
+### STORES
+### ─────────────────────────────────────────────
+
+### List owner stores
+GET {{baseUrl}}/stores
+Authorization: Bearer {{token}}
+
+###
+
+### Create new store
+POST {{baseUrl}}/stores
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "My Shop",
+  "businessType": "Sole Proprietorship",
+  "tradeLicense": "TL-001",
+  "phone": "01700000000",
+  "email": "shop@example.com",
+  "address": "123 Main St, Dhaka"
+}
+
+###
+
+### Get store by ID
+GET {{baseUrl}}/stores/{{storeId}}
+Authorization: Bearer {{token}}
+
+###
+
+### Update store
+PATCH {{baseUrl}}/stores/{{storeId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "businessType": "Sole Proprietorship",
+  "phone": "01700000001"
+}
+
+###
+
+### Delete store (soft-delete)
+DELETE {{baseUrl}}/stores/{{storeId}}
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────
+### STORE USERS (Staff)
+### ─────────────────────────────────────────────
+
+### List store staff
+GET {{baseUrl}}/stores/{{storeId}}/users
+Authorization: Bearer {{token}}
+
+###
+
+### Add staff to store
+# role: ADMIN | MANAGER | SALES_STAFF | ACCOUNTANT | DELIVERY_STAFF
+POST {{baseUrl}}/stores/{{storeId}}/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Jane Staff",
+  "phone": "01800000001",
+  "email": "jane@store.com",
+  "password": "Pass@1234",
+  "role": "SALES_STAFF"
+}
+
+###
+
+### Get staff member by ID
+GET {{baseUrl}}/stores/{{storeId}}/users/1
+Authorization: Bearer {{token}}
+
+###
+
+### Update staff member
+PATCH {{baseUrl}}/stores/{{storeId}}/users/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Jane Updated",
+  "role": "MANAGER"
+}
+
+###
+
+### Remove staff member (soft-delete)
+DELETE {{baseUrl}}/stores/{{storeId}}/users/1
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────
+### STORE SETTINGS
+### ─────────────────────────────────────────────
+
+### Get all store settings
+GET {{baseUrl}}/stores/{{storeId}}/settings
+Authorization: Bearer {{token}}
+
+###
+
+### Set a setting value
+PUT {{baseUrl}}/stores/{{storeId}}/settings/currency
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "value": "BDT"
+}
+
+###
+
+### Delete a setting
+DELETE {{baseUrl}}/stores/{{storeId}}/settings/currency
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────
+### PRODUCT CATEGORIES
+### ─────────────────────────────────────────────
+
+### List categories for a store
+GET {{baseUrl}}/stores/{{storeId}}/categories
+Authorization: Bearer {{token}}
+
+###
+
+### Create category
+POST {{baseUrl}}/stores/{{storeId}}/categories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Electronics"
+}
+
+###
+
+### Get category by ID
+GET {{baseUrl}}/stores/{{storeId}}/categories/1
+Authorization: Bearer {{token}}
+
+###
+
+### Rename category
+PATCH {{baseUrl}}/stores/{{storeId}}/categories/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Electronics & Gadgets"
+}
+
+###
+
+### Delete category
+DELETE {{baseUrl}}/stores/{{storeId}}/categories/1
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────
+### PRODUCTS
+### ─────────────────────────────────────────────
+
+### List all products in store
+GET {{baseUrl}}/stores/{{storeId}}/products
+Authorization: Bearer {{token}}
+
+###
+
+### Create product
+# unit: PIECE | KG | LITER | METER | BOX | DOZEN | PAIR | SET | OTHER
+POST {{baseUrl}}/stores/{{storeId}}/products
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Samsung Galaxy A54",
+  "sku": "SKU-001",
+  "unit": "Piece",
+  "purchasePrice": 25000,
+  "sellingPrice": 28000,
+  "lowStockThreshold": 5,
+  "description": "Android smartphone",
+  "categoryId": 1
+}
+
+###
+
+### Get product by ID
+GET {{baseUrl}}/stores/{{storeId}}/products/1
+Authorization: Bearer {{token}}
+
+###
+
+### Update product
+PATCH {{baseUrl}}/stores/{{storeId}}/products/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "sellingPrice": 27500,
+  "lowStockThreshold": 3
+}
+
+###
+
+### Delete product (soft-delete)
+DELETE {{baseUrl}}/stores/{{storeId}}/products/1
+Authorization: Bearer {{token}}
+
+###
+
+### Get current stock level for a product
+GET {{baseUrl}}/stores/{{storeId}}/products/1/stock
+Authorization: Bearer {{token}}
+
+###
+
+### Manual stock adjustment
+POST {{baseUrl}}/stores/{{storeId}}/products/1/stock/adjust
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "quantityChange": 10,
+  "note": "Opening stock entry"
+}
+
+###
+
+### Get stock ledger history
+GET {{baseUrl}}/stores/{{storeId}}/products/1/stock/ledger
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────
+### CUSTOMERS
+### ─────────────────────────────────────────────
+
+### List customers (optional ?search=)
+GET {{baseUrl}}/stores/{{storeId}}/customers
+Authorization: Bearer {{token}}
+
+###
+
+### List customers with search
+GET {{baseUrl}}/stores/{{storeId}}/customers?search=Ahmed
+Authorization: Bearer {{token}}
+
+###
+
+### Create customer
+# gender: MALE | FEMALE | OTHER
+# type: REGULAR | VIP | WHOLESALE
+POST {{baseUrl}}/stores/{{storeId}}/customers
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Ahmed Khan",
+  "phone": "01700000001",
+  "alternatePhone": "01800000001",
+  "email": "ahmed@example.com",
+  "gender": "MALE",
+  "address": "456 Elm St, Chittagong",
+  "city": "Chittagong",
+  "type": "REGULAR"
+}
+
+###
+
+### Get customer by ID
+GET {{baseUrl}}/stores/{{storeId}}/customers/1
+Authorization: Bearer {{token}}
+
+###
+
+### Update customer
+PATCH {{baseUrl}}/stores/{{storeId}}/customers/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Ahmed Khan Updated",
+  "type": "VIP"
+}
+
+###
+
+### Delete customer
+DELETE {{baseUrl}}/stores/{{storeId}}/customers/1
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────
+### DEALERS
+### ─────────────────────────────────────────────
+
+### List dealers
+GET {{baseUrl}}/stores/{{storeId}}/dealers
+Authorization: Bearer {{token}}
+
+###
+
+### Create dealer
+POST {{baseUrl}}/stores/{{storeId}}/dealers
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "businessName": "ABC Distributors Ltd",
+  "contactPerson": "Mr. Rahman",
+  "phone": "01700000002",
+  "alternatePhone": "01800000002",
+  "email": "abc@distributors.com",
+  "address": "789 Industrial Area, Dhaka",
+  "categories": ["Electronics", "Accessories"]
+}
+
+###
+
+### Get dealer by ID
+GET {{baseUrl}}/stores/{{storeId}}/dealers/1
+Authorization: Bearer {{token}}
+
+###
+
+### Update dealer
+PATCH {{baseUrl}}/stores/{{storeId}}/dealers/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "contactPerson": "Mr. Karim",
+  "phone": "01700000003"
+}
+
+###
+
+### Delete dealer
+DELETE {{baseUrl}}/stores/{{storeId}}/dealers/1
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────
+### ORDERS
+### ─────────────────────────────────────────────
+
+### List orders (optional ?status=)
+GET {{baseUrl}}/stores/{{storeId}}/orders
+Authorization: Bearer {{token}}
+
+###
+
+### List orders filtered by status
+# status: NEW | PROCESSING | PACKED | SHIPPED | DELIVERED | CANCELLED | RETURNED
+GET {{baseUrl}}/stores/{{storeId}}/orders?status=NEW
+Authorization: Bearer {{token}}
+
+###
+
+### Create order
+# paymentMethod: CASH | BANK_TRANSFER | BKASH | NAGAD | COD | OTHER
+# deliveryMethod: HOME_DELIVERY | PICKUP | COURIER
+# discountType: FLAT | PERCENT
+POST {{baseUrl}}/stores/{{storeId}}/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "customerId": 1,
+  "deliveryAddress": "456 Elm St, Chittagong",
+  "items": [
+    { "productId": 1, "quantity": 2, "unitPrice": 28000 }
+  ],
+  "discountType": "FLAT",
+  "discountAmount": 1000,
+  "deliveryCharge": 100,
+  "advancePaid": 5000,
+  "paymentMethod": "CASH",
+  "deliveryMethod": "HOME_DELIVERY",
+  "courierName": null,
+  "trackingId": null
+}
+
+###
+
+### Get order by ID
+GET {{baseUrl}}/stores/{{storeId}}/orders/1
+Authorization: Bearer {{token}}
+
+###
+
+### Update order status
+# orderStatus: NEW | PROCESSING | PACKED | SHIPPED | DELIVERED | CANCELLED | RETURNED
+PATCH {{baseUrl}}/stores/{{storeId}}/orders/1/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "orderStatus": "PROCESSING",
+  "trackingId": "TRK-001",
+  "note": "Packed and ready"
+}
+
+###
+
+### ─────────────────────────────────────────────
+### PURCHASES
+### ─────────────────────────────────────────────
+
+### List purchases
+GET {{baseUrl}}/stores/{{storeId}}/purchases
+Authorization: Bearer {{token}}
+
+###
+
+### Create purchase (auto-adds stock)
+# paymentMethod: CASH | BANK_TRANSFER | BKASH | NAGAD | CREDIT | OTHER
+POST {{baseUrl}}/stores/{{storeId}}/purchases
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "dealerId": 1,
+  "items": [
+    { "productId": 1, "quantity": 20, "unitCost": 25000 }
+  ],
+  "additionalCharges": 500,
+  "amountPaid": 100000
+}
+
+###
+
+### Get purchase by ID
+GET {{baseUrl}}/stores/{{storeId}}/purchases/1
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────
+### PAYMENTS
+### ─────────────────────────────────────────────
+
+### List payments for store
+GET {{baseUrl}}/stores/{{storeId}}/payments
+Authorization: Bearer {{token}}
+
+###
+
+### Record a payment
+# referenceType: ORDER | PURCHASE
+# paymentMethod: CASH | BANK_TRANSFER | BKASH | NAGAD | COD | CREDIT | OTHER
+POST {{baseUrl}}/stores/{{storeId}}/payments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "referenceType": "ORDER",
+  "referenceId": 1,
+  "amount": 5000,
+  "paymentMethod": "CASH",
+  "paymentDate": "2026-05-25",
+  "note": "Due payment received"
+}
+
+###
+
+### Get payment by ID
+GET {{baseUrl}}/stores/{{storeId}}/payments/1
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────
+### EXPENSES
+### ─────────────────────────────────────────────
+
+### List expense categories
+GET {{baseUrl}}/stores/{{storeId}}/expense-categories
+Authorization: Bearer {{token}}
+
+###
+
+### Create expense category
+POST {{baseUrl}}/stores/{{storeId}}/expense-categories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Rent"
+}
+
+###
+
+### Delete expense category
+DELETE {{baseUrl}}/stores/{{storeId}}/expense-categories/1
+Authorization: Bearer {{token}}
+
+###
+
+### List expenses
+GET {{baseUrl}}/stores/{{storeId}}/expenses
+Authorization: Bearer {{token}}
+
+###
+
+### Create expense
+# paymentMethod: CASH | BANK_TRANSFER | BKASH | NAGAD | OTHER
+POST {{baseUrl}}/stores/{{storeId}}/expenses
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "categoryId": 1,
+  "description": "Office rent payment",
+  "amount": 15000,
+  "paymentMethod": "CASH",
+  "paidTo": "Landlord",
+  "expenseDate": "2026-05-25",
+  "note": "May rent"
+}
+
+###
+
+### Get expense by ID
+GET {{baseUrl}}/stores/{{storeId}}/expenses/1
+Authorization: Bearer {{token}}
+
+###
+
+### Delete expense
+DELETE {{baseUrl}}/stores/{{storeId}}/expenses/1
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────
+### NOTIFICATIONS
+### ─────────────────────────────────────────────
+
+### Get unread notifications
+GET {{baseUrl}}/stores/{{storeId}}/notifications
+Authorization: Bearer {{token}}
+
+###
+
+### Mark notification as read
+PATCH {{baseUrl}}/stores/{{storeId}}/notifications/1/read
+Authorization: Bearer {{token}}
+
+###
+
+### Mark all notifications as read
+PATCH {{baseUrl}}/stores/{{storeId}}/notifications/read-all
+Authorization: Bearer {{token}}
+
+###

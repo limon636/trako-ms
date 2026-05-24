@@ -27,35 +27,8 @@ CREATE TABLE subscription_plans (
 );
 
 -- ============================================================
--- SECTION 2: OWNERS (Account Holders who pay the subscription)
+-- SECTION 2: (Owners merged into users as SUPER_ADMIN role)
 -- ============================================================
-
-CREATE TABLE owners (
-    id                  BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    uuid                CHAR(36)        NOT NULL UNIQUE DEFAULT (UUID()),
-    name                VARCHAR(100)    NOT NULL,
-    email               VARCHAR(150)    NOT NULL UNIQUE,
-    phone               VARCHAR(20)     NOT NULL UNIQUE,
-    password_hash       VARCHAR(255)    NOT NULL,
-    email_verified_at   TIMESTAMP       NULL,
-    phone_verified_at   TIMESTAMP       NULL,
-    is_active           TINYINT(1)      NOT NULL DEFAULT 1,
-    created_at          TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at          TIMESTAMP       NULL
-);
-
-CREATE TABLE owner_refresh_tokens (
-    id           BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    owner_id     BIGINT UNSIGNED NOT NULL,
-    token_hash   VARCHAR(255)    NOT NULL UNIQUE,
-    device_info  VARCHAR(255)    NULL,
-    ip_address   VARCHAR(45)     NULL,
-    expires_at   TIMESTAMP       NOT NULL,
-    revoked_at   TIMESTAMP       NULL,
-    created_at   TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (owner_id) REFERENCES owners(id) ON DELETE CASCADE
-);
 
 -- ============================================================
 -- SECTION 3: SUBSCRIPTIONS & BILLING
@@ -63,7 +36,7 @@ CREATE TABLE owner_refresh_tokens (
 
 CREATE TABLE subscriptions (
     id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    owner_id      BIGINT UNSIGNED NOT NULL,
+    user_id       BIGINT UNSIGNED NOT NULL,
     plan_id       TINYINT UNSIGNED NOT NULL,
     billing_cycle ENUM('monthly','yearly','trial') NOT NULL DEFAULT 'monthly',
     status        ENUM('active','expired','cancelled','grace_period') NOT NULL DEFAULT 'active',
@@ -74,13 +47,13 @@ CREATE TABLE subscriptions (
     auto_renew    TINYINT(1)      NOT NULL DEFAULT 1,
     created_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (owner_id) REFERENCES owners(id) ON DELETE CASCADE,
-    FOREIGN KEY (plan_id)  REFERENCES subscription_plans(id)
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (plan_id) REFERENCES subscription_plans(id)
 );
 
 CREATE TABLE subscription_invoices (
     id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    owner_id        BIGINT UNSIGNED NOT NULL,
+    user_id         BIGINT UNSIGNED NOT NULL,
     subscription_id BIGINT UNSIGNED NOT NULL,
     invoice_number  VARCHAR(30)     NOT NULL UNIQUE,
     amount          DECIMAL(10,2)   NOT NULL,
@@ -90,7 +63,7 @@ CREATE TABLE subscription_invoices (
     status          ENUM('paid','unpaid','refunded') NOT NULL DEFAULT 'unpaid',
     paid_at         TIMESTAMP       NULL,
     created_at      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (owner_id)        REFERENCES owners(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id)         REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (subscription_id) REFERENCES subscriptions(id)
 );
 
@@ -101,7 +74,7 @@ CREATE TABLE subscription_invoices (
 CREATE TABLE stores (
     id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     uuid          CHAR(36)        NOT NULL UNIQUE DEFAULT (UUID()),
-    owner_id      BIGINT UNSIGNED NOT NULL,
+    user_id       BIGINT UNSIGNED NOT NULL,
     name          VARCHAR(150)    NOT NULL,
     business_type VARCHAR(80)     NULL,
     trade_license VARCHAR(100)    NULL,
@@ -116,8 +89,8 @@ CREATE TABLE stores (
     created_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at    TIMESTAMP       NULL,
-    INDEX idx_store_owner (owner_id),
-    FOREIGN KEY (owner_id) REFERENCES owners(id) ON DELETE CASCADE
+    INDEX idx_store_user (user_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- ============================================================
@@ -127,12 +100,12 @@ CREATE TABLE stores (
 CREATE TABLE users (
     id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     uuid          CHAR(36)        NOT NULL UNIQUE DEFAULT (UUID()),
-    store_id      BIGINT UNSIGNED NOT NULL,
+    store_id      BIGINT UNSIGNED NULL,           -- NULL for SUPER_ADMIN
     name          VARCHAR(100)    NOT NULL,
     phone         VARCHAR(20)     NOT NULL,
-    email         VARCHAR(150)    NULL,
+    email         VARCHAR(150)    NULL UNIQUE,
     password_hash VARCHAR(255)    NOT NULL,
-    role          ENUM('ADMIN','MANAGER','SALES_STAFF','ACCOUNTANT','DELIVERY_STAFF') NOT NULL DEFAULT 'SALES_STAFF',
+    role          ENUM('SUPER_ADMIN','ADMIN','MANAGER','SALES_STAFF','ACCOUNTANT','DELIVERY_STAFF') NOT NULL DEFAULT 'SALES_STAFF',
     permissions   JSON            NULL,           -- granular overrides e.g. {"delete_order":false}
     is_active     TINYINT(1)      NOT NULL DEFAULT 1,
     last_login_at TIMESTAMP       NULL,
@@ -459,8 +432,3 @@ VALUES
 
 
 
-SET FOREIGN_KEY_CHECKS = 0;
-
-TRUNCATE TABLE owners;
-
-SET FOREIGN_KEY_CHECKS = 1;

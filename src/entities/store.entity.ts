@@ -11,7 +11,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { Owner } from './owner.entity';
 import { User } from './user.entity';
 import { Product } from './product.entity';
 import { Order } from './order.entity';
@@ -24,8 +23,8 @@ export class Store {
   @Column({ type: 'char', length: 36, unique: true })
   uuid: string;
 
-  @Column({ name: 'owner_id', type: 'bigint', unsigned: true })
-  ownerId: number;
+  @Column({ name: 'user_id', type: 'bigint', unsigned: true })
+  userId: number;
 
   @Column({ length: 150 })
   name: string;
@@ -69,9 +68,9 @@ export class Store {
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
   deletedAt: Date | null;
 
-  @ManyToOne(() => Owner, (owner) => owner.stores, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'owner_id' })
-  owner: Owner;
+  @ManyToOne(() => User, (user) => user.ownedStores, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
   @OneToMany(() => User, (user) => user.store)
   users: User[];

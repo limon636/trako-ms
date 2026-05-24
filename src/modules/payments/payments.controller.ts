@@ -10,13 +10,13 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
-import { UserJwtGuard } from '../../common/guards/user-jwt.guard';
+import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '../../entities/user.entity';
 
 @ApiBearerAuth()
 @ApiTags('Payments')
-@UseGuards(UserJwtGuard)
+@UseGuards(StoreAccessGuard)
 @Controller('stores/:storeId/payments')
 export class PaymentsController {
   constructor(private readonly service: PaymentsService) {}

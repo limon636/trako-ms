@@ -14,10 +14,9 @@ import { Store } from '../../entities/store.entity';
 import { User } from '../../entities/user.entity';
 import { Product } from '../../entities/product.entity';
 import { Order } from '../../entities/order.entity';
-import { Owner } from '../../entities/owner.entity';
 
 interface AuthRequest extends Request {
-  user: Owner | User;
+  user: User;
 }
 
 @Injectable()
@@ -37,38 +36,44 @@ export class SubscriptionLimitsGuard implements CanActivate {
     if (!limitType) return true;
 
     const request = context.switchToHttp().getRequest<AuthRequest>();
-    const requestUser = request.user as (Owner & { storeId?: number }) | undefined;
+    const requestUser = request.user;
 
     if (!requestUser) {
       throw new ForbiddenException('Authentication required');
     }
 
-    // Resolve owner ID and store ID from the authenticated principal
-    let ownerId: number;
+    // Resolve userId and storeId from the authenticated user
+    let userId: number;
     let storeId: number | undefined;
 
-    if ('storeId' in requestUser && requestUser.storeId) {
-      // Authenticated as a store User — look up owner via store
+    if (requestUser.storeId) {
+      // Store staff — look up the store owner (SUPER_ADMIN user)
       storeId = requestUser.storeId;
       const store = await this.dataSource.getRepository(Store).findOne({
         where: { id: storeId },
-        select: { id: true, ownerId: true },
+        select: { id: true, userId: true },
       });
       if (!store) throw new ForbiddenException('Store not found');
-      ownerId = store.ownerId;
+      userId = store.userId;
     } else {
-      // Authenticated as an Owner
-      ownerId = (requestUser as Owner).id;
-      // storeId from route param (for product/user/order limits)
-      const paramStoreId =
-        (request.params as Record<string, string>)['storeId'];
+      // SUPER_ADMIN — user IS the owner
+      userId = requestUser.id;
+      const paramStoreId = (request.params as Record<string, string>)['storeId'];
       storeId = paramStoreId ? parseInt(paramStoreId, 10) : undefined;
+    }
+
+    // Allow a SUPER_ADMIN to create their very first store without a subscription
+    if (limitType === LimitType.STORES) {
+      const existingStoreCount = await this.dataSource
+        .getRepository(Store)
+        .count({ where: { userId } });
+      if (existingStoreCount === 0) return true;
     }
 
     // Fetch active subscription with plan
     const subscription = await this.dataSource.getRepository(Subscription).findOne({
       where: {
-        ownerId,
+        userId,
         status: SubscriptionStatus.ACTIVE,
         endsAt: MoreThanOrEqual(new Date()),
       },
@@ -99,8 +104,7 @@ export class SubscriptionLimitsGuard implements CanActivate {
       case LimitType.STORES: {
         if (plan.maxStores === -1) break;
         const count = await this.dataSource.getRepository(Store).count({
-          where: { ownerId, deletedAt: undefined },
-          withDeleted: false,
+          where: { userId },
         });
         if (count >= plan.maxStores) {
           throw new UnprocessableEntityException(
@@ -114,8 +118,7 @@ export class SubscriptionLimitsGuard implements CanActivate {
         if (plan.maxProducts === -1) break;
         if (!storeId) throw new ForbiddenException('Store context required');
         const count = await this.dataSource.getRepository(Product).count({
-          where: { storeId, deletedAt: undefined },
-          withDeleted: false,
+          where: { storeId },
         });
         if (count >= plan.maxProducts) {
           throw new UnprocessableEntityException(
@@ -129,8 +132,7 @@ export class SubscriptionLimitsGuard implements CanActivate {
         if (plan.maxUsers === -1) break;
         if (!storeId) throw new ForbiddenException('Store context required');
         const count = await this.dataSource.getRepository(User).count({
-          where: { storeId, deletedAt: undefined },
-          withDeleted: false,
+          where: { storeId },
         });
         if (count >= plan.maxUsers) {
           throw new UnprocessableEntityException(

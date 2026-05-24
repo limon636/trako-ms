@@ -17,14 +17,11 @@ export class UserJwtStrategy extends PassportStrategy(Strategy, 'user-jwt') {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('jwt.user.secret') ?? 'user_secret',
+      secretOrKey: configService.get<string>('jwt.secret') ?? 'jwt_secret',
     });
   }
 
   async validate(payload: UserJwtPayload): Promise<User> {
-    if (payload.type !== 'user') {
-      throw new UnauthorizedException('Invalid token type');
-    }
     const user = await this.userRepo.findOne({
       where: { id: payload.sub, isActive: true },
     });

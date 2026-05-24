@@ -5,24 +5,19 @@ export default () => ({
     host: process.env.DB_HOST ?? 'localhost',
     port: parseInt(process.env.DB_PORT ?? '3306', 10),
     username: process.env.DB_USERNAME ?? 'root',
-    password: process.env.DB_PASSWORD ?? '',
-    database: process.env.DB_DATABASE ?? 'trako_db',
+    password: process.env.DB_PASSWORD ?? 'root',
+    database: process.env.DB_DATABASE ?? 'trako',
   },
   jwt: {
-    owner: {
-      secret: process.env.JWT_OWNER_SECRET ?? 'owner_secret',
-      expiresIn: process.env.JWT_OWNER_EXPIRES_IN ?? '15m',
-      refreshSecret:
-        process.env.JWT_OWNER_REFRESH_SECRET ?? 'owner_refresh_secret',
-      refreshExpiresIn: process.env.JWT_OWNER_REFRESH_EXPIRES_IN ?? '7d',
-    },
-    user: {
-      secret: process.env.JWT_USER_SECRET ?? 'user_secret',
-      expiresIn: process.env.JWT_USER_EXPIRES_IN ?? '15m',
-      refreshSecret:
-        process.env.JWT_USER_REFRESH_SECRET ?? 'user_refresh_secret',
-      refreshExpiresIn: process.env.JWT_USER_REFRESH_EXPIRES_IN ?? '7d',
-    },
+    secret: process.env.JWT_SECRET ?? 'jwt_secret',
+    expiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
+    refreshSecret: process.env.JWT_REFRESH_SECRET ?? 'jwt_refresh_secret',
+    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? '30d',
   },
   bcryptSaltRounds: parseInt(process.env.BCRYPT_SALT_ROUNDS ?? '12', 10),
+  firebase: {
+    projectId: process.env.FIREBASE_PROJECT_ID ?? '',
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL ?? '',
+    privateKey: process.env.FIREBASE_PRIVATE_KEY ?? '',
+  },
 });

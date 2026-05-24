@@ -10,13 +10,13 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PurchasesService } from './purchases.service';
 import { CreatePurchaseDto } from './dto/create-purchase.dto';
-import { UserJwtGuard } from '../../common/guards/user-jwt.guard';
+import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '../../entities/user.entity';
 
 @ApiBearerAuth()
 @ApiTags('Purchases')
-@UseGuards(UserJwtGuard)
+@UseGuards(StoreAccessGuard)
 @Controller('stores/:storeId/purchases')
 export class PurchasesController {
   constructor(private readonly service: PurchasesService) {}

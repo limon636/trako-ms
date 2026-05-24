@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Owner } from './owner.entity';
+import { User } from './user.entity';
 import { SubscriptionPlan } from './subscription-plan.entity';
 import { SubscriptionInvoice } from './subscription-invoice.entity';
 
@@ -30,8 +30,8 @@ export class Subscription {
   @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
   id: number;
 
-  @Column({ name: 'owner_id', type: 'bigint', unsigned: true })
-  ownerId: number;
+  @Column({ name: 'user_id', type: 'bigint', unsigned: true })
+  userId: number;
 
   @Column({ name: 'plan_id', type: 'tinyint', unsigned: true })
   planId: number;
@@ -63,9 +63,9 @@ export class Subscription {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @ManyToOne(() => Owner, (owner) => owner.subscriptions, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'owner_id' })
-  owner: Owner;
+  @ManyToOne(() => User, (user) => user.subscriptions, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
   @ManyToOne(() => SubscriptionPlan)
   @JoinColumn({ name: 'plan_id' })
