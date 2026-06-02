@@ -17,6 +17,11 @@ export class StoresService {
   ) {}
 
   async create(userId: number, dto: CreateStoreDto): Promise<Store> {
+    const existing = await this.storeRepo.find({ where: { userId } });
+    if (!existing || existing.length === 0) {
+      dto.isDefault = true;
+    }
+
     const store = this.storeRepo.create({ ...dto, userId });
     return this.storeRepo.save(store);
   }
@@ -38,6 +43,13 @@ export class StoresService {
 
   async update(userId: number, storeId: number, dto: UpdateStoreDto): Promise<Store> {
     const store = await this.findOne(userId, storeId);
+    if (dto.isDefault) {
+      const existingDefault = await this.storeRepo.findOne({ where: { userId, isDefault: true } });
+      if (existingDefault && existingDefault.id !== storeId) {
+        existingDefault.isDefault = false;
+        await this.storeRepo.save(existingDefault);
+      }
+    }
     Object.assign(store, dto);
     return this.storeRepo.save(store);
   }

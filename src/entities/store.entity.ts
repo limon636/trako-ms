@@ -56,6 +56,9 @@ export class Store {
   @Column({ length: 50, default: 'Asia/Dhaka' })
   timezone: string;
 
+  @Column({ name: 'is_default', default: false })
+  isDefault: boolean;
+
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
 

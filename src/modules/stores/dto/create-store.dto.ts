@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsEmail,
   IsNotEmpty,
   IsOptional,
@@ -53,4 +54,9 @@ export class CreateStoreDto {
   @IsOptional()
   @IsString()
   timezone?: string;
+  
+  @ApiPropertyOptional({ default: false })
+  @IsOptional()
+  @IsBoolean()
+  isDefault?: boolean;
 }
