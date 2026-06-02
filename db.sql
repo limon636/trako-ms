@@ -85,6 +85,7 @@ CREATE TABLE stores (
     logo_url      VARCHAR(500)    NULL,
     currency      VARCHAR(10)     NOT NULL DEFAULT 'BDT',
     timezone      VARCHAR(50)     NOT NULL DEFAULT 'Asia/Dhaka',
+    is_default    TINYINT(1)      NOT NULL DEFAULT 0,
     is_active     TINYINT(1)      NOT NULL DEFAULT 1,
     created_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -101,10 +102,11 @@ CREATE TABLE users (
     id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     uuid          CHAR(36)        NOT NULL UNIQUE DEFAULT (UUID()),
     store_id      BIGINT UNSIGNED NULL,           -- NULL for SUPER_ADMIN
+    firebase_uid  VARCHAR(128)    NULL UNIQUE,    -- Firebase Auth UID
     name          VARCHAR(100)    NOT NULL,
-    phone         VARCHAR(20)     NOT NULL,
+    phone         VARCHAR(20)     NULL,
     email         VARCHAR(150)    NULL UNIQUE,
-    password_hash VARCHAR(255)    NOT NULL,
+    password_hash VARCHAR(255)    NULL,           -- NULL for Firebase-only users
     role          ENUM('SUPER_ADMIN','ADMIN','MANAGER','SALES_STAFF','ACCOUNTANT','DELIVERY_STAFF') NOT NULL DEFAULT 'SALES_STAFF',
     permissions   JSON            NULL,           -- granular overrides e.g. {"delete_order":false}
     is_active     TINYINT(1)      NOT NULL DEFAULT 1,
