@@ -156,7 +156,7 @@ export class AuthService {
     // remove .com from provider for consistency with client SDK values
     const normalizedProvider = tokenProvider.replace('.com', '');
     // Firebase uses "password" for email/password sign-in; treat "email" as an alias
-    const expectedProvider = dto.provider.replace('.com', '').replace(/^email$/, 'password');
+    const expectedProvider = dto.provider.replace('.com', '');
     if (normalizedProvider !== expectedProvider) {
       console.log('Token provider:', normalizedProvider, 'Expected provider:', expectedProvider);
       throw new UnauthorizedException('provider does not match token');
